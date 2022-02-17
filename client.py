@@ -33,7 +33,7 @@ class Client:
         except socket.error as e:
             raise ClientError(f"Problems with response : {e}")
         data = data.decode().split("\n")
-        status,data  = data[0],data[1:len(data)]
+        status,data_processed  = data[0],data[1:len(data)-2]
         if status == "error":
             raise ClientError(data)
         # sock.close()  # закрываем соединение
@@ -50,18 +50,20 @@ class Client:
         except socket.error as e:
             raise ClientError(f"Problems with response : {e}")
         data = data.decode().split("\n")
-        status, data = data[0], data[1:len(data)]
-#         ok\npalm.cpu 2.0 1150864247\npalm.cpu 0.5 1150864248\neardrum.cpu 3.0 1150864250\n\n
-#         data = "ok\n\n"
-#         data = data.split("\n")
-        status, data = data[0], data[1:len(data)-2]
-        # print(status, data)
+        status, data_processed = data[0], data[1:len(data)-2]
         if status == "error":
-            raise ClientError(data)
-        else:
-            res = {}
-            for el in data:
+            raise ClientError(data_processed)
+        elif status != "ok":
+            raise ClientError(data_processed)
+
+        res = {}
+        try:
+            for el in data_processed:
                 el = el.split()
+
+                if len(el) == 1:
+                    raise ClientError(data_processed,"herehere")
+
                 # print(el)
                 try:
                     if el[0] in res:
@@ -73,8 +75,12 @@ class Client:
 
             for k,v in res.items():
                 res[k] = sorted(v, key=lambda el: el[0])
+                res[k] = [tuple(el) for el in res[k]]
+
             return res
-        # for k,v in res.items():
-        #     print(k,v)
+        except Exception:
+            raise ClientError("here",data_processed,status)
+    # for k,v in res.items():
+    #     print(k,v)
 
 
