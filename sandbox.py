@@ -1,5 +1,7 @@
-import os
-
-photo_file_name="1.jpg"
-root, ext = os.path.splitext(photo_file_name)
-print(root,ext)
+# import os
+#
+# photo_file_name="1.jpg"
+# root, ext = os.path.splitext(photo_file_name)
+# print(root,ext)
+a={}
+print(len(a))

@@ -5,6 +5,8 @@ import asyncio
 # <статус ответа><\n><данные ответа><\n\n>
 class ClientError(Exception):
     pass
+
+
 def run_server(host, port):
     loop = asyncio.get_event_loop()
     coro = loop.create_server(
@@ -22,6 +24,8 @@ def run_server(host, port):
     server.close()
     loop.run_until_complete(server.wait_closed())
     loop.close()
+
+
 # loop = asyncio.get_event_loop()
 # coro = loop.create_server(
 #     ClientServerProtocol,
@@ -51,11 +55,11 @@ class ClientServerProtocol(asyncio.Protocol):
     def get(self, data_request):
         try:
             name = data_request.split()
+            if len(self.data_storage) == 0:
+                return 'ok\n\n'
             if name == "*":
                 res = "ok\n"
-                if len(self.data_storage)==0:
-                    res += "\n"
-                    return res
+
                 for k, in self.data_storage.items():
                     res += f"{k} {self.data_storage[k][0]} {self.data_storage[k][0]} \n"
                 res += "\n"
@@ -63,7 +67,7 @@ class ClientServerProtocol(asyncio.Protocol):
                 res = f"ok\n{name} {self.data_storage[name][0]} {self.data_storage[name][0]} \n\n"
             return res
         except Exception as e:
-            raise ClientError(e)
+            raise ClientError("error")
 
     def post(self, data_request):
         try:
@@ -72,15 +76,16 @@ class ClientServerProtocol(asyncio.Protocol):
             timestamp = int(timestamp)
             self.data_storage[name] = (value, timestamp)
         except Exception as e:
-            raise ClientError(e)
+            raise ClientError("error")
 
     def process_data(self, data):
-        requests = data.split("\n")
+        requests = data.split("\n")[:-1]
         for req in requests:
-            data_processed = req.split()
+            data_processed = req.split(maxsplit=1)
             command, data_request = data_processed[0], data_processed[1]
             if command == "get":
-                self.get(data_request)
+                resp = self.get(data_request)
+                return resp
             elif command == "post":
                 self.post(data_request)
             else:
@@ -88,11 +93,11 @@ class ClientServerProtocol(asyncio.Protocol):
 
     def connection_made(self, transport):
         # self.data_storage = self.craete_data_storage()
-
+        super().__init__()
         self.transport = transport
 
     def data_received(self, data):
         resp = self.process_data(data.decode())
         self.transport.write(resp.encode())
 
-
+run_server("127.0.0.1", 8889)

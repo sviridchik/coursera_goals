@@ -1,4 +1,4 @@
-from client import Client
+from client1 import Client
 
 client = Client("127.0.0.1", 8888, timeout=15)
 
