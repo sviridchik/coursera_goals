@@ -55,41 +55,71 @@ class ClientServerProtocol(asyncio.Protocol):
     def get(self, data_request):
         try:
             name = data_request.split()
-            if len(self.data_storage) == 0:
+            if len(name)>1:
+                return 'error\nwrong command\n\n'
+            name = name[0]
+            if len(self.data_storage) == 0 or name not in self.data_storage:
                 return 'ok\n\n'
             if name == "*":
                 res = "ok\n"
 
-                for k, in self.data_storage.items():
-                    res += f"{k} {self.data_storage[k][0]} {self.data_storage[k][0]} \n"
+                for k,v in self.data_storage.items():
+                    for el in v:
+                        res += f"{k} {el[0]} {el[1]}\n"
                 res += "\n"
             else:
-                res = f"ok\n{name} {self.data_storage[name][0]} {self.data_storage[name][0]} \n\n"
-            return res
+                res = "ok\n"
+                for k, v in self.data_storage.items():
+                    if k == name:
+                        for el in v:
+                            res += f"{k} {el[0]} {el[1]}\n"
+                res += "\n"
+                return res
         except Exception as e:
-            raise ClientError("error")
+            return 'error\nwrong command\n\n'
 
-    def post(self, data_request):
+    def put(self, data_request):
         try:
+            if len(data_request.split()) != 3:
+                return 'error\nwrong command\n\n'
+
             name, value, timestamp = data_request.split()
             value = float(value)
             timestamp = int(timestamp)
-            self.data_storage[name] = (value, timestamp)
+            # if name in self.data_storage and timestamp<self.data_storage[name][1]:
+            #     return 'ok\n\n'
+            if name not in self.data_storage:
+                self.data_storage[name] = []
+            else:
+                # print(9)
+                if timestamp not in  [el[1] for el in self.data_storage[name]] :
+                    self.data_storage[name].append((value, timestamp))
+                else:
+                    for el in self.data_storage[name]:
+                        if el[1] == timestamp:
+                            el[0] = value
+            return 'ok\n\n'
         except Exception as e:
-            raise ClientError("error")
+            return 'error\nwrong command\n\n'
 
     def process_data(self, data):
+        if len(data)<5 or data[-1] != "\n":
+            return "error\nwrong command\n\n"
         requests = data.split("\n")[:-1]
         for req in requests:
             data_processed = req.split(maxsplit=1)
+            if len(data_processed)==1:
+                return 'error\nwrong command\n\n'
+
             command, data_request = data_processed[0], data_processed[1]
             if command == "get":
                 resp = self.get(data_request)
                 return resp
-            elif command == "post":
-                self.post(data_request)
+            elif command == "put":
+                resp = self.put(data_request)
+                return resp
             else:
-                raise ClientError()
+                return "error\nwrong command\n\n"
 
     def connection_made(self, transport):
         # self.data_storage = self.craete_data_storage()
@@ -100,4 +130,4 @@ class ClientServerProtocol(asyncio.Protocol):
         resp = self.process_data(data.decode())
         self.transport.write(resp.encode())
 
-run_server("127.0.0.1", 8889)
+# run_server("127.0.0.1", 8889)
