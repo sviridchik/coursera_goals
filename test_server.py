@@ -119,10 +119,44 @@ con = socket.create_connection(("127.0.0.1", 8888), 15)
 # con2 = socket.create_connection(("127.0.0.1", 8889), 15)
 
 # print(con)
-con.sendall("put palm.cpu 23.7 1150864247\n".encode())
+con.sendall("put k1 0.25 1\n".encode())
 data = con.recv(4096).decode("utf-8")
 print(data)
-con.sendall("put palm.cpu 23.74 1150864247\n".encode())
+
+con.sendall("put k1 2.156 2\n".encode())
+data = con.recv(4096).decode("utf-8")
+print(data)
+
+
+con.sendall("put k1 0.35 3\n".encode())
+data = con.recv(4096).decode("utf-8")
+print(data)
+
+
+
+con.sendall("put k2 30 4\n".encode())
+data = con.recv(4096).decode("utf-8")
+print(data)
+
+
+con.sendall("put k2 40 5\n".encode())
+data = con.recv(4096).decode("utf-8")
+print(data)
+
+con.sendall("put k2 41 5\n".encode())
+data = con.recv(4096).decode("utf-8")
+print(data)
+
+# con.sendall("put test_key1 12.0 1503319740\n".encode())
+# data = con.recv(4096).decode("utf-8")
+# print(data)
+# con.sendall("put test_key2 12.0 1503319740\n".encode())
+# data = con.recv(4096).decode("utf-8")
+# print(data)
+# con.sendall("get test_key\n".encode())
+# data = con.recv(4096).decode("utf-8")
+# print(data)
+con.sendall("get *\n".encode())
 data = con.recv(4096).decode("utf-8")
 print(data)
 # con2.sendall("get test_key\n".encode())
